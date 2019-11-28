@@ -8,7 +8,7 @@ class EntityComparatorError(KronosError):
     pass
 
 
-class EntityComparator:
+class EntityComparator(object):
 
     def __init__(self, comparators=None, diff_helper=None):
         self._comparators = comparators or []
@@ -63,11 +63,11 @@ class EntityComparator:
 
         comp = self._comparator_for_entity(entity)
 
-        if comp:
-            _diff = comp.diff(new_entity, old_entity, **kwargs)
+        if comp and hasattr(comp, "diff"):
+            _diff = comp.diff(new_entity, old_entity, **kwargs.get('metadata', {}))
 
         else:
-            _diff = self._diff_helper.diff(new_entity, old_entity, kwargs.get('metadata'))
+            _diff = self._diff_helper.diff(new_entity, old_entity, **kwargs.get('metadata', {}))
 
         return _diff
 

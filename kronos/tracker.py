@@ -10,7 +10,7 @@ class EntityConflictError(KronosError):
     pass
 
 
-class Tracker:
+class Tracker(object):
 
     """
     This class allows you to track the state of a given entity. By recording the state in
@@ -54,6 +54,9 @@ class Tracker:
 
         return _id
 
+    def _build_entity_key(self, entity, entity_dict):
+        return "{}-{}".format(entity.__class__.__name__, self._entity_id(entity, entity_dict))
+
     def track_entity(self, entity, override=False):
         """
         Start tracking the state of an entity. This method will take a snapshot
@@ -67,7 +70,7 @@ class Tracker:
         """
         entity_dict = self.comparator.entity_to_dict(entity)
 
-        entity_key = "{}-{}".format(entity.__class__.__name__, self._entity_id(entity))
+        entity_key = self._build_entity_key(entity, entity_dict)
 
         if not override and self._store.has_key(entity_key):
             if self._store.get(entity_key) != entity_dict:
@@ -91,7 +94,9 @@ class Tracker:
         """
         diff = None
 
-        tracked_entity = self._store.get(self._entity_id(entity))
+        entity_dict = self.comparator.entity_to_dict(entity)
+        tracked_entity = self._store.get(self._build_entity_key(entity, entity_dict))
+
         if tracked_entity:
             diff = self.comparator.diff(entity, tracked_entity)
 
@@ -115,7 +120,7 @@ class Tracker:
           - log_data (dict, optional): An extra metadata to be included in the change logs
 
         Returns:
-          A Diff object repsentif the change from the current state and the previously
+          A Diff object representing the change from the current state and the previously
           tracked snapshot
         """
         diff = None
